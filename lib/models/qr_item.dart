@@ -9,6 +9,7 @@ class QrItem {
   final int foregroundColorValue;
   final int backgroundColorValue;
   final String errorCorrectionLevel; // 'L', 'M', 'Q', 'H'
+  bool isFavorite;
 
   QrItem({
     required this.id,
@@ -19,6 +20,7 @@ class QrItem {
     required this.foregroundColorValue,
     required this.backgroundColorValue,
     required this.errorCorrectionLevel,
+    this.isFavorite = false,
   });
 
   Color get foregroundColor => Color(foregroundColorValue);
@@ -33,6 +35,7 @@ class QrItem {
         'foregroundColorValue': foregroundColor.toARGB32(),
         'backgroundColorValue': backgroundColor.toARGB32(),
         'errorCorrectionLevel': errorCorrectionLevel,
+        'isFavorite': isFavorite,
       };
 
   factory QrItem.fromJson(Map<String, dynamic> json) => QrItem(
@@ -43,8 +46,9 @@ class QrItem {
         timestamp: json['timestamp'] != null
             ? DateTime.parse(json['timestamp'])
             : DateTime.now(),
-        foregroundColorValue: json['foregroundColorValue'] ?? const Color(0xFF000000).toARGB32(),
+        foregroundColorValue: json['foregroundColorValue'] ?? const Color(0xFF0F172A).toARGB32(),
         backgroundColorValue: json['backgroundColorValue'] ?? const Color(0xFFFFFFFF).toARGB32(),
         errorCorrectionLevel: json['errorCorrectionLevel'] ?? 'M',
+        isFavorite: json['isFavorite'] ?? false,
       );
 }

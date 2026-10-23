@@ -1,72 +1,65 @@
-# Professional QR Code Generator & Manager App - Implementation Plan
+# 5 New Professional Features - Implementation Plan
 
-An enterprise-grade, feature-rich Flutter QR Code Generator App that goes far beyond basic requirements. It features a stunning Material 3 UI, advanced customization (colors, error correction, multiple data types like URL, Text, WiFi, vCard, Email, Phone), screenshot capture, gallery saving, sharing capabilities, and persistent generation history.
+An enterprise-grade feature expansion for the QR Code Studio app, introducing 5 powerful new capabilities:
+1. **Batch QR Code Generator**: Generate and export multiple QR codes simultaneously from a list of texts or URLs.
+2. **QR Code Scanner / Reader**: Scan QR codes directly using device camera or gallery image picker.
+3. **Logo & Center Branding**: Embed custom center icons / emojis / badges inside the QR code.
+4. **Favorites & Starred History**: Pin and favorite important QR codes for quick access.
+5. **Custom QR Frame / Banner Designer**: Add professional promotional frames (e.g., "SCAN ME", custom title/footer) around the QR code.
 
 ## User Review Required
 
 > [!IMPORTANT]
-> This app will add several high-grade packages to `pubspec.yaml`:
-> - `qr_flutter`: QR rendering engine
-> - `screenshot`: Capturing QR widgets into high-resolution images
-> - `path_provider`: Temporary & local file management
-> - `share_plus`: Native sharing of text and QR code images
-> - `gal`: Seamless saving of images to device gallery
-> - `shared_preferences`: Persistent history storage
+> This plan adds `mobile_scanner` and `image_picker` packages to `pubspec.yaml` to support the new QR code scanning feature.
 
 ## Open Questions
 
-- None. The architecture follows clean separation of concerns (Models, Services, Screens, Widgets) to ensure maintainability and professional production quality.
+- None. All features integrate smoothly into the existing Material 3 and Glassmorphism design system.
 
 ## Proposed Changes
 
-### Dependencies & Configuration
+### Dependencies
 
 #### [MODIFY] [pubspec.yaml](file:///E:/flutter%20all%20project/pubspec.yaml)
-- Add `qr_flutter`, `screenshot`, `path_provider`, `share_plus`, `gal`, `shared_preferences`, and `intl`.
+- Add `mobile_scanner: ^5.2.3` and `image_picker: ^1.1.2`.
 
 ---
 
-### Core Models & Services
+### Data Models & Services
 
-#### [NEW] [qr_item.dart](file:///E:/flutter%20all%20project/lib/models/qr_item.dart)
-- Data model representing a generated QR code (data, title, type, timestamp, foregroundColor, backgroundColor, errorCorrectionLevel).
-
-#### [NEW] [storage_service.dart](file:///E:/flutter%20all%20project/lib/services/storage_service.dart)
-- Handles saving generated QR codes to history using `shared_preferences`, saving images to gallery using `gal` and `screenshot`, and exporting files.
+#### [MODIFY] [qr_item.dart](file:///E:/flutter%20all%20project/lib/models/qr_item.dart)
+- Add `isFavorite` (bool) property with JSON serialization support.
 
 ---
 
-### UI Components & Screens
+### New Feature Screens & Widgets
 
-#### [NEW] [main.dart](file:///E:/flutter%20all%20project/lib/main.dart)
-- Enhanced entry point with Material 3 design system, custom light/dark color schemes, and navigation between Generator, History, and Templates.
+#### [NEW] [scanner_screen.dart](file:///E:/flutter%20all%20project/lib/screens/scanner_screen.dart)
+- Camera scanner and gallery image scanner for reading QR codes.
 
-#### [NEW] [home_screen.dart](file:///E:/flutter%20all%20project/lib/screens/home_screen.dart)
-- Professional dashboard with bottom navigation or tab bar (`Generate QR`, `Templates`, `History`, `Settings`).
+#### [NEW] [batch_generator_screen.dart](file:///E:/flutter%20all%20project/lib/screens/batch_generator_screen.dart)
+- Multi-line text input to batch generate multiple QR codes at once.
 
-#### [NEW] [generator_screen.dart](file:///E:/flutter%20all%20project/lib/screens/generator_screen.dart)
-- Interactive QR generator interface:
-  - Input field with quick clear & paste.
-  - Category selector tabs (Text/URL, WiFi, Email, Phone, vCard).
-  - Advanced Customization drawer/section (QR color, background color, error correction level).
-  - Live preview card wrapped in `Screenshot` controller.
-  - Action buttons: Download/Save to Gallery, Share Image, Share Text, Copy.
+#### [NEW] [frame_designer_screen.dart](file:///E:/flutter%20all%20project/lib/screens/frame_designer_screen.dart)
+- Custom frame designer with banner text ("SCAN ME", header/footer) and styling.
 
-#### [NEW] [templates_screen.dart](file:///E:/flutter%20all%20project/lib/screens/templates_screen.dart)
-- Pre-built templates for WiFi connection, vCard business card, Email composer, and SMS.
+#### [MODIFY] [generator_screen.dart](file:///E:/flutter%20all%20project/lib/screens/generator_screen.dart)
+- Integrate center logo/icon branding toggle and quick access to frame designer.
 
-#### [NEW] [history_screen.dart](file:///E:/flutter%20all%20project/lib/screens/history_screen.dart)
-- List of previously generated QR codes with search, quick preview dialog, delete, and share actions.
+#### [MODIFY] [history_screen.dart](file:///E:/flutter%20all%20project/lib/screens/history_screen.dart)
+- Add favorite/star filtering and pinning logic.
+
+#### [MODIFY] [home_screen.dart](file:///E:/flutter%20all%20project/lib/screens/home_screen.dart)
+- Update bottom navigation or tab bar to include Scanner, Batch, Generator, Templates, and History.
 
 ## Verification Plan
 
 ### Automated Tests
-- Build verification via `flutter build` or test compilation.
+- Run `flutter analyze` and `flutter test`.
 
 ### Manual Verification
-- Run the app on emulator/device.
-- Test generating QR code from text/URL.
-- Test generating QR code from WiFi template.
-- Test customizing colors and error correction.
-- Test saving to gallery and sharing via `share_plus`.
-- Test history persistence across app restarts.
+- Test scanning a QR code with the camera/image picker.
+- Test batch generating QR codes.
+- Test adding center logo branding.
+- Test favoriting history items.
+- Test designing a QR frame banner.

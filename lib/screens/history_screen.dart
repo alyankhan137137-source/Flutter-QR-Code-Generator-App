@@ -16,6 +16,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   List<QrItem> _history = [];
   bool _isLoading = true;
   String _searchQuery = '';
+  bool _showFavoritesOnly = false;
 
   @override
   void initState() {
@@ -30,6 +31,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
       _history = items;
       _isLoading = false;
     });
+  }
+
+  Future<void> _toggleFavorite(QrItem item) async {
+    item.isFavorite = !item.isFavorite;
+    await StorageService.saveHistory(_history);
+    setState(() {});
   }
 
   Future<void> _deleteItem(String id) async {
@@ -47,6 +54,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       builder: (context) => AlertDialog(
         title: const Text('Clear All History?'),
         content: const Text('This action cannot be undone.'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -73,15 +81,32 @@ class _HistoryScreenState extends State<HistoryScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    
+    // Sort: favorites first, then timestamp descending
+    _history.sort((a, b) {
+      if (a.isFavorite && !b.isFavorite) return -1;
+      if (!a.isFavorite && b.isFavorite) return 1;
+      return b.timestamp.compareTo(a.timestamp);
+    });
+
     final filtered = _history.where((item) {
-      return item.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+      final matchesSearch = item.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
           item.data.toLowerCase().contains(_searchQuery.toLowerCase());
+      if (_showFavoritesOnly) {
+        return matchesSearch && item.isFavorite;
+      }
+      return matchesSearch;
     }).toList();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Generated History'),
+        title: const Text('History & Favorites'),
         actions: [
+          IconButton(
+            icon: Icon(_showFavoritesOnly ? Icons.star : Icons.star_border),
+            tooltip: _showFavoritesOnly ? 'Show All' : 'Show Favorites Only',
+            onPressed: () => setState(() => _showFavoritesOnly = !_showFavoritesOnly),
+          ),
           if (_history.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.delete_sweep),
@@ -159,18 +184,30 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                     theme.colorScheme.onPrimaryContainer,
                                 child: Icon(_getIconForType(item.type)),
                               ),
-                              title: Text(
-                                item.title,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                              title: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      item.title,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: Icon(
+                                      item.isFavorite ? Icons.star : Icons.star_border,
+                                      color: item.isFavorite ? Colors.amber : Colors.grey,
+                                    ),
+                                    onPressed: () => _toggleFavorite(item),
+                                  ),
+                                ],
                               ),
                               subtitle: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const SizedBox(height: 4),
                                   Text(
                                     item.data,
                                     maxLines: 1,

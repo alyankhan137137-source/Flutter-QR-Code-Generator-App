@@ -1,12 +1,12 @@
-# Task List - Professional QR Code Generator App
+# Task List - 5 New Professional Features
 
-- [x] Update `pubspec.yaml` with required dependencies (`qr_flutter`, `screenshot`, `path_provider`, `share_plus`, `gal`, `shared_preferences`, `intl`)
-- [x] Create QR Item data model (`lib/models/qr_item.dart`)
-- [x] Create Storage and Gallery Service (`lib/services/storage_service.dart`)
-- [x] Implement Generator Screen with live preview, types, and customization (`lib/screens/generator_screen.dart`)
-- [x] Implement Templates Screen for WiFi, vCard, Email, Phone (`lib/screens/templates_screen.dart`)
-- [x] Implement History Screen with persistence and quick actions (`lib/screens/history_screen.dart`)
-- [x] Implement Home Screen wrapper with bottom navigation & Material 3 theme (`lib/screens/home_screen.dart`)
-- [x] Update `lib/main.dart` to launch `HomeScreen`
-- [x] Verify build and functionality
+- [x] Add `mobile_scanner` and `image_picker` to `pubspec.yaml`
+- [x] Update `QrItem` model to support `isFavorite` property (`lib/models/qr_item.dart`)
+- [x] Implement QR Code Scanner Screen (`lib/screens/scanner_screen.dart`)
+- [x] Implement Batch QR Generator Screen (`lib/screens/batch_generator_screen.dart`)
+- [x] Implement QR Frame & Banner Designer (`lib/screens/frame_designer_screen.dart`)
+- [x] Update Generator Screen with logo/branding options (`lib/screens/generator_screen.dart`)
+- [x] Update History Screen with favorite pinning & filtering (`lib/screens/history_screen.dart`)
+- [x] Update Home Screen navigation with 5 tabs (`lib/screens/home_screen.dart`)
+- [x] Verify build, static analysis (`flutter analyze`), and tests (`flutter test`)
 - [x] Create Walkthrough artifact (`walkthrough.artifact.md`)

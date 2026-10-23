@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import '../models/qr_item.dart';
 import 'generator_screen.dart';
-import 'templates_screen.dart';
 import 'history_screen.dart';
+import 'scanner_screen.dart';
+import 'batch_generator_screen.dart';
+import 'frame_designer_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -45,7 +47,9 @@ class _HomeScreenState extends State<HomeScreen> {
         initialTitle: _selectedTitle,
         initialType: _selectedType,
       ),
-      TemplatesScreen(onSelectTemplate: _navigateToGeneratorWithData),
+      ScannerScreen(onScanned: _navigateToGeneratorWithData),
+      const BatchGeneratorScreen(),
+      const FrameDesignerScreen(),
       HistoryScreen(onSelectHistoryItem: _navigateToGeneratorWithItem),
     ];
 
@@ -61,16 +65,24 @@ class _HomeScreenState extends State<HomeScreen> {
             _currentIndex = index;
           });
         },
-        destinations: const [
-          NavigationDestination(
+        destinations: [
+          const NavigationDestination(
             icon: Icon(Icons.qr_code_2),
-            label: 'Generator',
+            label: 'Generate',
+          ),
+          const NavigationDestination(
+            icon: Icon(Icons.camera_alt),
+            label: 'Scan',
+          ),
+          const NavigationDestination(
+            icon: Icon(Icons.playlist_add),
+            label: 'Batch',
           ),
           NavigationDestination(
-            icon: Icon(Icons.dashboard_customize),
-            label: 'Templates',
+            icon: Icon(Icons.crop_original),
+            label: 'Frames',
           ),
-          NavigationDestination(
+          const NavigationDestination(
             icon: Icon(Icons.history),
             label: 'History',
           ),

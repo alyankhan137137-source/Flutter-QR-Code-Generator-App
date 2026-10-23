@@ -1,25 +1,21 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:gal/gal.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/qr_item.dart';
-import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 class StorageService {
   static const String _storageKey = 'qr_generator_history_v1';
 
-  // Save QR history list
   static Future<void> saveHistory(List<QrItem> items) async {
     final prefs = await SharedPreferences.getInstance();
     final jsonList = items.map((item) => jsonEncode(item.toJson())).toList();
     await prefs.setStringList(_storageKey, jsonList);
   }
 
-  // Load QR history list
   static Future<List<QrItem>> loadHistory() async {
     final prefs = await SharedPreferences.getInstance();
     final jsonList = prefs.getStringList(_storageKey);
@@ -33,7 +29,6 @@ class StorageService {
     }
   }
 
-  // Add a single item to history
   static Future<List<QrItem>> addItem(QrItem newItem) async {
     final items = await loadHistory();
     items.insert(0, newItem);
@@ -44,7 +39,6 @@ class StorageService {
     return items;
   }
 
-  // Delete item by ID
   static Future<List<QrItem>> deleteItem(String id) async {
     final items = await loadHistory();
     items.removeWhere((item) => item.id == id);
@@ -52,13 +46,11 @@ class StorageService {
     return items;
   }
 
-  // Clear all history
   static Future<void> clearHistory() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_storageKey);
   }
 
-  // Capture screenshot and save to gallery (Mobile) or Downloads/Documents (PC Desktop)
   static Future<Map<String, dynamic>> saveQrToGallery(ScreenshotController controller) async {
     try {
       final imageBytes = await controller.capture(
@@ -73,45 +65,44 @@ class StorageService {
         };
       }
 
-      // Check if running on Mobile (Android or iOS) and not web
-      if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
-        final hasAccess = await Gal.hasAccess();
-        if (!hasAccess) {
-          final granted = await Gal.requestAccess();
-          if (!granted) {
-            return {
-              'success': false,
-              'message': 'Storage permission denied. Please allow access in app settings.'
-            };
-          }
-        }
-
-        final tempDir = await getTemporaryDirectory();
-        final file = File('${tempDir.path}/qr_${DateTime.now().millisecondsSinceEpoch}.png');
-        await file.writeAsBytes(imageBytes);
-
-        await Gal.putImage(file.path, album: 'QR Generator');
+      if (kIsWeb) {
+        await Share.shareXFiles(
+          [XFile.fromData(imageBytes, mimeType: 'image/png', name: 'qr_code_${DateTime.now().millisecondsSinceEpoch}.png')],
+          text: 'QR Code Download',
+        );
         return {
           'success': true,
-          'message': 'QR code saved to mobile gallery successfully!'
+          'message': 'QR code downloaded successfully!'
         };
       } else {
-        // PC / Desktop (Windows, macOS, Linux, or Web)
-        Directory? dir;
         try {
-          dir = await getDownloadsDirectory();
-        } catch (_) {}
+          final hasAccess = await Gal.hasAccess();
+          if (!hasAccess) {
+            final granted = await Gal.requestAccess();
+            if (!granted) {
+              return {
+                'success': false,
+                'message': 'Storage permission denied. Please allow access in app settings.'
+              };
+            }
+          }
 
-        dir ??= await getApplicationDocumentsDirectory();
-
-        final filePath = '${dir.path}/qr_code_${DateTime.now().millisecondsSinceEpoch}.png';
-        final file = File(filePath);
-        await file.writeAsBytes(imageBytes);
-
-        return {
-          'success': true,
-          'message': 'QR code saved successfully to: $filePath'
-        };
+          await Gal.putImageBytes(imageBytes, album: 'QR Generator');
+          return {
+            'success': true,
+            'message': 'QR code saved to gallery successfully!'
+          };
+        } catch (e) {
+          // Fallback to share/download if gal throws on desktop/unsupported
+          await Share.shareXFiles(
+            [XFile.fromData(imageBytes, mimeType: 'image/png', name: 'qr_code_${DateTime.now().millisecondsSinceEpoch}.png')],
+            text: 'QR Code',
+          );
+          return {
+            'success': true,
+            'message': 'QR code exported successfully!'
+          };
+        }
       }
     } on GalException catch (e) {
       debugPrint('GalException saving to gallery: ${e.type.message}');
@@ -128,7 +119,6 @@ class StorageService {
     }
   }
 
-  // Share QR Image
   static Future<void> shareQrImage(ScreenshotController controller, String text) async {
     try {
       final imageBytes = await controller.capture(
@@ -138,12 +128,8 @@ class StorageService {
 
       if (imageBytes == null) return;
 
-      final tempDir = await getTemporaryDirectory();
-      final file = File('${tempDir.path}/qr_share_${DateTime.now().millisecondsSinceEpoch}.png');
-      await file.writeAsBytes(imageBytes);
-
       await Share.shareXFiles(
-        [XFile(file.path)],
+        [XFile.fromData(imageBytes, mimeType: 'image/png', name: 'qr_share_${DateTime.now().millisecondsSinceEpoch}.png')],
         text: 'QR Code Data: $text',
       );
     } catch (e) {
@@ -151,7 +137,6 @@ class StorageService {
     }
   }
 
-  // Share Text
   static Future<void> shareText(String text) async {
     await Share.share(text);
   }
