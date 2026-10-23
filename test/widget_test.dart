@@ -8,6 +8,6 @@ void main() {
     await tester.pumpWidget(const ProQrApp());
 
     // Verify that Generator title is present.
-    expect(find.text('QR Code Generator'), findsOneWidget);
+    expect(find.text('QR Generator'), findsOneWidget);
   });
 }

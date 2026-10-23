@@ -12,13 +12,13 @@ class ProQrApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Pro QR Code Generator',
+      title: 'QR Code Studio',
       debugShowCheckedModeBanner: false,
       themeMode: ThemeMode.system,
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.indigo,
+          seedColor: const Color(0xFF0F172A), // Professional Tech Slate
           brightness: Brightness.light,
         ),
         fontFamily: 'Roboto',
@@ -26,7 +26,7 @@ class ProQrApp extends StatelessWidget {
       darkTheme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.indigo,
+          seedColor: const Color(0xFF38BDF8), // Tech Accent Blue
           brightness: Brightness.dark,
         ),
         fontFamily: 'Roboto',

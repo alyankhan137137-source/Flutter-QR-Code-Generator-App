@@ -4,6 +4,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:screenshot/screenshot.dart';
 import '../models/qr_item.dart';
 import '../services/storage_service.dart';
+import '../widgets/glass_card.dart';
 
 class GeneratorScreen extends StatefulWidget {
   final String? initialData;
@@ -25,7 +26,7 @@ class _GeneratorScreenState extends State<GeneratorScreen> {
   final TextEditingController _textController = TextEditingController();
   final ScreenshotController _screenshotController = ScreenshotController();
 
-  Color _foregroundColor = Colors.black;
+  Color _foregroundColor = const Color(0xFF0F172A); // Professional Slate
   Color _backgroundColor = Colors.white;
   String _errorCorrectionLevel = 'M';
   double _qrSize = 220.0;
@@ -76,12 +77,11 @@ class _GeneratorScreenState extends State<GeneratorScreen> {
     final text = _textController.text.trim();
     if (text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter text or URL to generate QR code')),
+        const SnackBar(content: Text('Please enter content or URL to generate QR code')),
       );
       return;
     }
 
-    // Determine type
     String type = 'text';
     if (text.startsWith('http://') || text.startsWith('https://')) {
       type = 'url';
@@ -103,8 +103,7 @@ class _GeneratorScreenState extends State<GeneratorScreen> {
     FocusScope.of(context).unfocus();
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('QR Code generated and saved to history!'),
-        backgroundColor: Colors.green,
+        content: Text('QR Code generated successfully'),
         duration: Duration(seconds: 2),
       ),
     );
@@ -120,16 +119,18 @@ class _GeneratorScreenState extends State<GeneratorScreen> {
     }
 
     setState(() => _isSaving = true);
-    final success = await StorageService.saveQrToGallery(_screenshotController);
+    final result = await StorageService.saveQrToGallery(_screenshotController);
     setState(() => _isSaving = false);
 
     if (!mounted) return;
+    final success = result['success'] as bool;
+    final message = result['message'] as String;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(success
-            ? 'QR Code saved to gallery successfully!'
-            : 'Failed to save QR Code to gallery'),
-        backgroundColor: success ? Colors.green : Colors.red,
+        content: Text(message),
+        backgroundColor: success ? Colors.green.shade700 : Colors.red.shade700,
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }
@@ -149,7 +150,7 @@ class _GeneratorScreenState extends State<GeneratorScreen> {
     await Clipboard.setData(ClipboardData(text: _textController.text));
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Copied text to clipboard')),
+      const SnackBar(content: Text('Copied to clipboard')),
     );
   }
 
@@ -160,12 +161,12 @@ class _GeneratorScreenState extends State<GeneratorScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('QR Code Generator'),
+        title: const Text('QR Generator'),
         elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.paste),
-            tooltip: 'Paste from Clipboard',
+            tooltip: 'Paste from clipboard',
             onPressed: () async {
               final data = await Clipboard.getData('text/plain');
               if (data?.text != null) {
@@ -178,182 +179,178 @@ class _GeneratorScreenState extends State<GeneratorScreen> {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Input TextField Card
-            Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    TextField(
-                      controller: _textController,
-                      maxLines: 4,
-                      minLines: 2,
-                      decoration: InputDecoration(
-                        labelText: 'Enter text, URL, or data',
-                        hintText: 'https://example.com or any message...',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        suffixIcon: IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: () {
-                            setState(() {
-                              _textController.clear();
-                            });
-                          },
-                        ),
+            // Input Glass Card
+            GlassCard(
+              borderRadius: 16,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextField(
+                    controller: _textController,
+                    maxLines: 4,
+                    minLines: 2,
+                    decoration: InputDecoration(
+                      labelText: 'Enter text, URL, or data',
+                      hintText: 'https://example.com',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      onChanged: (val) => setState(() {}),
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton.icon(
-                      onPressed: _handleGenerate,
-                      icon: const Icon(Icons.bolt),
-                      label: const Text('Generate QR Code'),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        backgroundColor: theme.colorScheme.primary,
-                        foregroundColor: theme.colorScheme.onPrimary,
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          setState(() {
+                            _textController.clear();
+                          });
+                        },
                       ),
                     ),
-                  ],
-                ),
+                    onChanged: (val) => setState(() {}),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: _handleGenerate,
+                    icon: const Icon(Icons.qr_code),
+                    label: const Text('Generate QR Code'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      backgroundColor: theme.colorScheme.primary,
+                      foregroundColor: theme.colorScheme.onPrimary,
+                      elevation: 2,
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
 
-            // QR Code Live Preview Card
-            Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  children: [
-                    Screenshot(
-                      controller: _screenshotController,
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: _backgroundColor,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: textContent.isEmpty
-                            ? SizedBox(
-                                width: _qrSize,
-                                height: _qrSize,
-                                child: Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.qr_code,
-                                        size: 64,
-                                        color: theme.colorScheme.outline
-                                            .withValues(alpha: 0.5),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        'Your QR code will appear here',
-                                        style: TextStyle(
-                                          color: theme.colorScheme.outline,
-                                          fontSize: 12,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              )
-                            : QrImageView(
-                                data: textContent,
-                                version: QrVersions.auto,
-                                size: _qrSize,
-                                backgroundColor: _backgroundColor,
-                                eyeStyle: QrEyeStyle(
-                                  eyeShape: QrEyeShape.square,
-                                  color: _foregroundColor,
-                                ),
-                                dataModuleStyle: QrDataModuleStyle(
-                                  dataModuleShape: QrDataModuleShape.square,
-                                  color: _foregroundColor,
-                                ),
-                                errorCorrectionLevel:
-                                    _getErrorCorrectionEnum(_errorCorrectionLevel),
-                              ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Action buttons
-                    if (textContent.isNotEmpty) ...[
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          _buildActionButton(
-                            context,
-                            icon: Icons.download,
-                            label: 'Save',
-                            isLoading: _isSaving,
-                            onPressed: _saveGallery,
-                          ),
-                          _buildActionButton(
-                            context,
-                            icon: Icons.share,
-                            label: 'Share Image',
-                            onPressed: _shareImage,
-                          ),
-                          _buildActionButton(
-                            context,
-                            icon: Icons.text_snippet,
-                            label: 'Share Text',
-                            onPressed: _shareTextContent,
-                          ),
-                          _buildActionButton(
-                            context,
-                            icon: Icons.copy,
-                            label: 'Copy',
-                            onPressed: _copyText,
+            // Preview Glass Card
+            GlassCard(
+              borderRadius: 20,
+              blur: 16,
+              opacity: 0.15,
+              child: Column(
+                children: [
+                  Screenshot(
+                    controller: _screenshotController,
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: _backgroundColor,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.08),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
                           ),
                         ],
                       ),
-                    ],
+                      child: textContent.isEmpty
+                          ? SizedBox(
+                              width: _qrSize,
+                              height: _qrSize,
+                              child: Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.qr_code_2,
+                                      size: 56,
+                                      color: theme.colorScheme.outline
+                                          .withValues(alpha: 0.4),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Preview will appear here',
+                                      style: TextStyle(
+                                        color: theme.colorScheme.outline,
+                                        fontSize: 13,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                          : QrImageView(
+                              data: textContent,
+                              version: QrVersions.auto,
+                              size: _qrSize,
+                              backgroundColor: _backgroundColor,
+                              eyeStyle: QrEyeStyle(
+                                eyeShape: QrEyeShape.square,
+                                color: _foregroundColor,
+                              ),
+                              dataModuleStyle: QrDataModuleStyle(
+                                dataModuleShape: QrDataModuleShape.square,
+                                color: _foregroundColor,
+                              ),
+                              errorCorrectionLevel:
+                                  _getErrorCorrectionEnum(_errorCorrectionLevel),
+                            ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  if (textContent.isNotEmpty) ...[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildActionButton(
+                          context,
+                          icon: Icons.download,
+                          label: 'Save',
+                          isLoading: _isSaving,
+                          onPressed: _saveGallery,
+                        ),
+                        _buildActionButton(
+                          context,
+                          icon: Icons.share,
+                          label: 'Image',
+                          onPressed: _shareImage,
+                        ),
+                        _buildActionButton(
+                          context,
+                          icon: Icons.text_snippet,
+                          label: 'Text',
+                          onPressed: _shareTextContent,
+                        ),
+                        _buildActionButton(
+                          context,
+                          icon: Icons.copy,
+                          label: 'Copy',
+                          onPressed: _copyText,
+                        ),
+                      ],
+                    ),
                   ],
-                ),
+                ],
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
 
-            // Customization Options Expansion Tile
+            // Customization Card (Standard Material Card to support ExpansionTile properly)
             Card(
               elevation: 1,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
               child: ExpansionTile(
-                title: const Text('Advanced Customization'),
-                leading: const Icon(Icons.palette),
+                title: const Text('Customization'),
+                leading: const Icon(Icons.palette_outlined),
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Error Correction Level
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -373,32 +370,31 @@ class _GeneratorScreenState extends State<GeneratorScreen> {
                               },
                               children: const [
                                 Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 12),
+                                    padding: EdgeInsets.symmetric(horizontal: 10),
                                     child: Text('L')),
                                 Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 12),
+                                    padding: EdgeInsets.symmetric(horizontal: 10),
                                     child: Text('M')),
                                 Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 12),
+                                    padding: EdgeInsets.symmetric(horizontal: 10),
                                     child: Text('Q')),
                                 Padding(
-                                    padding: EdgeInsets.symmetric(horizontal: 12),
+                                    padding: EdgeInsets.symmetric(horizontal: 10),
                                     child: Text('H')),
                               ],
                             ),
                           ],
                         ),
-                        const SizedBox(height: 16),
-                        // Size Slider
+                        const SizedBox(height: 12),
                         Row(
                           children: [
-                            const Text('QR Size:'),
+                            const Text('Size:'),
                             Expanded(
                               child: Slider(
                                 value: _qrSize,
                                 min: 150,
-                                max: 300,
-                                divisions: 15,
+                                max: 280,
+                                divisions: 13,
                                 label: _qrSize.round().toString(),
                                 onChanged: (val) => setState(() => _qrSize = val),
                               ),
@@ -406,8 +402,7 @@ class _GeneratorScreenState extends State<GeneratorScreen> {
                             Text('${_qrSize.round()}px'),
                           ],
                         ),
-                        const SizedBox(height: 16),
-                        // Color Pickers
+                        const SizedBox(height: 12),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
@@ -454,22 +449,29 @@ class _GeneratorScreenState extends State<GeneratorScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: theme.colorScheme.primaryContainer,
+                color: theme.colorScheme.primaryContainer.withValues(alpha: 0.8),
                 shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: isLoading
                   ? const SizedBox(
-                      width: 24,
-                      height: 24,
+                      width: 20,
+                      height: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : Icon(icon, color: theme.colorScheme.onPrimaryContainer),
+                  : Icon(icon, size: 20, color: theme.colorScheme.onPrimaryContainer),
             ),
             const SizedBox(height: 6),
             Text(
               label,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: FontWeight.w500,
                 color: theme.colorScheme.onSurface,
               ),
@@ -489,20 +491,20 @@ class _GeneratorScreenState extends State<GeneratorScreen> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(6.0),
         child: Row(
           children: [
             Container(
-              width: 24,
-              height: 24,
+              width: 22,
+              height: 22,
               decoration: BoxDecoration(
                 color: color,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.grey, width: 1),
+                border: Border.all(color: Colors.grey.shade400, width: 1.5),
               ),
             ),
             const SizedBox(width: 8),
-            Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
+            Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
           ],
         ),
       ),
@@ -511,22 +513,23 @@ class _GeneratorScreenState extends State<GeneratorScreen> {
 
   void _showColorPickerDialog(bool isForeground) {
     final colors = [
-      Colors.black,
-      Colors.blue.shade900,
-      Colors.deepPurple,
-      Colors.indigo,
-      Colors.teal,
-      Colors.green.shade800,
-      Colors.red.shade800,
-      Colors.white,
-      Colors.amber.shade100,
-      Colors.grey.shade200,
+      const Color(0xFF0F172A), // Slate / Black
+      const Color(0xFF1E3A8A), // Deep Navy
+      const Color(0xFF047857), // Emerald
+      const Color(0xFFB91C1C), // Crimson
+      const Color(0xFF4338CA), // Indigo
+      const Color(0xFF374151), // Charcoal
+      const Color(0xFF000000), // Pure Black
+      const Color(0xFFFFFFFF), // White
+      const Color(0xFFF1F5F9), // Light Slate
+      const Color(0xFFE2E8F0), // Cool Gray
     ];
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(isForeground ? 'Select QR Color' : 'Select Background Color'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         content: Wrap(
           spacing: 12,
           runSpacing: 12,
@@ -543,12 +546,12 @@ class _GeneratorScreenState extends State<GeneratorScreen> {
                 Navigator.pop(context);
               },
               child: Container(
-                width: 48,
-                height: 48,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
                   color: c,
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.grey, width: 2),
+                  border: Border.all(color: Colors.grey.shade400, width: 2),
                 ),
               ),
             );

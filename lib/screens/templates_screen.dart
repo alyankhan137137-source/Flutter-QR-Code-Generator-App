@@ -129,8 +129,7 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
     widget.onSelectTemplate(data, title, type);
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('Template loaded into Generator!'),
-        backgroundColor: Colors.green,
+        content: Text('Template applied successfully'),
         duration: Duration(seconds: 2),
       ),
     );
@@ -178,7 +177,7 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
                       color: isSelected
                           ? theme.colorScheme.onPrimaryContainer
                           : theme.colorScheme.onSurface,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 );
@@ -189,32 +188,32 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
           // Form body
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(16),
               child: Card(
-                elevation: 2,
+                elevation: 1,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
                         'Configure ${_categories[_selectedCategory]} QR',
-                        style: theme.textTheme.titleLarge?.copyWith(
+                        style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 16),
                       _buildSelectedForm(),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 20),
                       ElevatedButton.icon(
                         onPressed: _generateAndApply,
                         icon: const Icon(Icons.qr_code_2),
-                        label: const Text('Generate QR Code from Template'),
+                        label: const Text('Generate from Template'),
                         style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -240,29 +239,35 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
           children: [
             TextField(
               controller: _wifiSsidController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Network Name (SSID)',
-                prefixIcon: Icon(Icons.wifi),
-                border: OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.wifi),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _wifiPassController,
               obscureText: true,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Password',
-                prefixIcon: Icon(Icons.lock),
-                border: OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.lock),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
               initialValue: _wifiEncryption,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Encryption Type',
-                prefixIcon: Icon(Icons.security),
-                border: OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.security),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               items: ['WPA', 'WEP', 'nopass']
                   .map((e) => DropdownMenuItem(value: e, child: Text(e)))
@@ -279,49 +284,59 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
           children: [
             TextField(
               controller: _vNameController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Full Name *',
-                prefixIcon: Icon(Icons.person),
-                border: OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.person),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _vPhoneController,
               keyboardType: TextInputType.phone,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Phone Number',
-                prefixIcon: Icon(Icons.phone),
-                border: OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.phone),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _vEmailController,
               keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Email Address',
-                prefixIcon: Icon(Icons.email),
-                border: OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.email),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _vOrgController,
-              decoration: const InputDecoration(
-                labelText: 'Organization / Company',
-                prefixIcon: Icon(Icons.business),
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: 'Organization',
+                prefixIcon: const Icon(Icons.business),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _vWebController,
               keyboardType: TextInputType.url,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Website URL',
-                prefixIcon: Icon(Icons.language),
-                border: OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.language),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ],
@@ -333,29 +348,35 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
             TextField(
               controller: _emailToController,
               keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Recipient Email *',
-                prefixIcon: Icon(Icons.email),
-                border: OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.email),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _emailSubController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Subject',
-                prefixIcon: Icon(Icons.subject),
-                border: OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.subject),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _emailBodyController,
               maxLines: 3,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Message Body',
-                prefixIcon: Icon(Icons.message),
-                border: OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.message),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ],
@@ -367,20 +388,24 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
             TextField(
               controller: _smsPhoneController,
               keyboardType: TextInputType.phone,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Phone Number *',
-                prefixIcon: Icon(Icons.phone),
-                border: OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.phone),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _smsMsgController,
               maxLines: 3,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'SMS Message',
-                prefixIcon: Icon(Icons.sms),
-                border: OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.sms),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ],
@@ -392,10 +417,12 @@ class _TemplatesScreenState extends State<TemplatesScreen> {
             TextField(
               controller: _phoneNumController,
               keyboardType: TextInputType.phone,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Phone Number *',
-                prefixIcon: Icon(Icons.phone),
-                border: OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.phone),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ],

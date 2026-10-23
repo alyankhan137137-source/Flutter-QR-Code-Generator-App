@@ -7,6 +7,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/qr_item.dart';
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class StorageService {
   static const String _storageKey = 'qr_generator_history_v1';
@@ -35,9 +36,7 @@ class StorageService {
   // Add a single item to history
   static Future<List<QrItem>> addItem(QrItem newItem) async {
     final items = await loadHistory();
-    // Avoid duplicate exact data at top if exists, or just prepend
     items.insert(0, newItem);
-    // Keep max 100 items
     if (items.length > 100) {
       items.removeRange(100, items.length);
     }
@@ -59,30 +58,73 @@ class StorageService {
     await prefs.remove(_storageKey);
   }
 
-  // Capture screenshot and save to gallery
-  static Future<bool> saveQrToGallery(ScreenshotController controller) async {
+  // Capture screenshot and save to gallery (Mobile) or Downloads/Documents (PC Desktop)
+  static Future<Map<String, dynamic>> saveQrToGallery(ScreenshotController controller) async {
     try {
-      final hasAccess = await Gal.hasAccess();
-      if (!hasAccess) {
-        await Gal.requestAccess();
-      }
-
       final imageBytes = await controller.capture(
-        delay: const Duration(milliseconds: 100),
+        delay: const Duration(milliseconds: 150),
         pixelRatio: 3.0,
       );
 
-      if (imageBytes == null) return false;
+      if (imageBytes == null) {
+        return {
+          'success': false,
+          'message': 'Failed to capture QR code image.'
+        };
+      }
 
-      final tempDir = await getTemporaryDirectory();
-      final file = File('${tempDir.path}/qr_${DateTime.now().millisecondsSinceEpoch}.png');
-      await file.writeAsBytes(imageBytes);
+      // Check if running on Mobile (Android or iOS) and not web
+      if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+        final hasAccess = await Gal.hasAccess();
+        if (!hasAccess) {
+          final granted = await Gal.requestAccess();
+          if (!granted) {
+            return {
+              'success': false,
+              'message': 'Storage permission denied. Please allow access in app settings.'
+            };
+          }
+        }
 
-      await Gal.putImage(file.path, album: 'QR Generator');
-      return true;
+        final tempDir = await getTemporaryDirectory();
+        final file = File('${tempDir.path}/qr_${DateTime.now().millisecondsSinceEpoch}.png');
+        await file.writeAsBytes(imageBytes);
+
+        await Gal.putImage(file.path, album: 'QR Generator');
+        return {
+          'success': true,
+          'message': 'QR code saved to mobile gallery successfully!'
+        };
+      } else {
+        // PC / Desktop (Windows, macOS, Linux, or Web)
+        Directory? dir;
+        try {
+          dir = await getDownloadsDirectory();
+        } catch (_) {}
+
+        dir ??= await getApplicationDocumentsDirectory();
+
+        final filePath = '${dir.path}/qr_code_${DateTime.now().millisecondsSinceEpoch}.png';
+        final file = File(filePath);
+        await file.writeAsBytes(imageBytes);
+
+        return {
+          'success': true,
+          'message': 'QR code saved successfully to: $filePath'
+        };
+      }
+    } on GalException catch (e) {
+      debugPrint('GalException saving to gallery: ${e.type.message}');
+      return {
+        'success': false,
+        'message': e.type.message
+      };
     } catch (e) {
-      debugPrint('Error saving to gallery: $e');
-      return false;
+      debugPrint('Error saving QR: $e');
+      return {
+        'success': false,
+        'message': 'Failed to save QR code: $e'
+      };
     }
   }
 
@@ -90,7 +132,7 @@ class StorageService {
   static Future<void> shareQrImage(ScreenshotController controller, String text) async {
     try {
       final imageBytes = await controller.capture(
-        delay: const Duration(milliseconds: 100),
+        delay: const Duration(milliseconds: 150),
         pixelRatio: 3.0,
       );
 
@@ -102,7 +144,7 @@ class StorageService {
 
       await Share.shareXFiles(
         [XFile(file.path)],
-        text: 'Check out this QR Code: $text',
+        text: 'QR Code Data: $text',
       );
     } catch (e) {
       debugPrint('Error sharing image: $e');
